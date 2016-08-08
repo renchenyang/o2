@@ -2,16 +2,24 @@
  * udp broadcast server example 
  * Example Stock Index Broadcast:
  */
-#include <stdio.h>
+
+#ifdef WIN32
+#include <winsock2.h> 
+#include <windows.h> 
+#else
 #include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#endif
+
+#include <stdio.h>
+#include <windows.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <time.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
  
 #ifndef TRUE
 #define TRUE 1

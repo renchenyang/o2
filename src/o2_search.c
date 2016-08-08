@@ -743,7 +743,12 @@ int o2_add_method(const char *path, const char *typespec,
 
 //Recieving messages.
 
+
+#ifdef WIN32
+signed size_t o2_get_length(o2_type type, void *data)
+#else
 ssize_t o2_get_length(o2_type type, void *data)
+#endif
 {
     switch (type) {
         case O2_TRUE:

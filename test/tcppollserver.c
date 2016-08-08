@@ -3,20 +3,50 @@
  * Example Stock Index Broadcast:
  */
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+
+
+#ifdef WIN32
+#include <winsock2.h> 
+#include <windows.h>   
+#include <time.h>   
+#else
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/poll.h>
 #include <ifaddrs.h>
+#endif
+
+#pragma comment(lib,"ws2_32.lib")
+
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
+#endif
+
+#ifdef WIN32
+typedef struct ifaddrs
+{
+	struct ifaddrs  *ifa_next;    /* Next item in list */
+	char            *ifa_name;    /* Name of interface */
+	unsigned int     ifa_flags;   /* Flags from SIOCGIFFLAGS */
+	struct sockaddr *ifa_addr;    /* Address of interface */
+	struct sockaddr *ifa_netmask; /* Netmask of interface */
+	union
+	{
+		struct sockaddr *ifu_broadaddr; /* Broadcast address of interface */
+		struct sockaddr *ifu_dstaddr; /* Point-to-point destination address */
+	} ifa_ifu;
+#define              ifa_broadaddr ifa_ifu.ifu_broadaddr
+#define              ifa_dstaddr   ifa_ifu.ifu_dstaddr
+	void            *ifa_data;    /* Address-specific data */
+} ifaddrs;
 #endif
 
 static struct sockaddr_in o2_serv_addr;
@@ -59,7 +89,13 @@ int main(int argc, char **argv) {
         displayError("Bind receive socket");
     }
     // find the port that was (possibly) allocated
-    socklen_t addr_len = sizeof(o2_serv_addr);
+
+	#ifdef WIN32
+		int addr_len = sizeof(o2_serv_addr);
+	#else
+		socklen_t addr_len = sizeof(o2_serv_addr);
+	#endif
+
     if (getsockname(server_sock, (struct sockaddr *) &o2_serv_addr,
                     &addr_len)) {
         displayError("getsockname call to get port number");

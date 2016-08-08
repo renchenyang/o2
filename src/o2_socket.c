@@ -30,7 +30,7 @@ char o2_local_ip[24];
 int o2_local_tcp_port = 0;
 SOCKET local_send_sock = INVALID_SOCKET; // socket for sending all UDP msgs
 
-dyn_array o2_fds; ///< pre-constructed fds parameter for poll()
+//dyn_array o2_fds; ///< pre-constructed fds parameter for poll()
 dyn_array o2_fds_info; ///< info about sockets
 
 process_info o2_process; ///< the process descriptor for this process
@@ -421,11 +421,11 @@ int make_tcp_recv_socket(int tag, process_info_ptr process)
 #ifdef _WIN32
 
 FD_SET o2_read_set;
-timeval o2_no_timeout;
+struct timeval o2_no_timeout;
 
 int o2_recv()
 {
-    int i;
+    int i, total;
     FD_ZERO(&o2_read_set);
     for (i = 0; i < o2_fds.length; i++) {
         struct pollfd *d = DA_GET(o2_fds, struct pollfd, i);
@@ -433,7 +433,7 @@ int o2_recv()
     }
     o2_no_timeout.tv_sec = 0;
     o2_no_timeout.tv_usec = 0;
-    if ((total = select(0, &o2_read_set, NULL, NULL, o2_no_timeout)) == SOCKET_ERROR) {
+    if ((total = select(0, &o2_read_set, NULL, NULL, &o2_no_timeout)) == SOCKET_ERROR) {
         /* TODO: error handling here */
         return O2_FAIL; /* TODO: return a specific error code for this */
     }

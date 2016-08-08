@@ -3,18 +3,31 @@
  * Get datagram stock market quotes from UDP broadcast:
  * see below the step by step explanation
  */
-#include <stdio.h>
+
+#ifdef WIN32
+#include <winsock2.h> 
+#include <windows.h> 
+#else
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <time.h>
 #include <signal.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+
+#pragma comment(lib,"ws2_32.lib")
+
+#ifndef TRUE
+#define TRUE 1
+#define FALSE 0
+#endif
 
 #ifndef TRUE
 #define TRUE 1

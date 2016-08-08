@@ -6,7 +6,12 @@
 #include "o2.h"
 #include "stdio.h"
 #include "string.h"
-#include "unistd.h"
+
+#ifdef WIN32
+#include <windows.h> 
+#else
+#include <unistd.h>
+#endif
 
 int clockslave(o2_message_ptr msg, const char *types,
                o2_arg ** argv, int argc, void *user_data)
@@ -23,7 +28,7 @@ int clockslave(o2_message_ptr msg, const char *types,
     // messages directly on the local scheduler
     o2_start_send();
     msg = o2_finish_message(o2_local_time() + 1, "!client/clockslave");
-    o2_schedule(&ltsched, msg);
+    o2_schedule(&o2_ltsched, msg);
     return O2_SUCCESS;
 }
 
