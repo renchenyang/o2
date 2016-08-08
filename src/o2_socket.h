@@ -17,9 +17,17 @@
 #include <ws2tcpip.h>                   // Header for tcp connections
 #pragma comment(lib, "ws2_32.lib")
 // #include <windows.h>
+
 #define socklen_t int
 #define sleep Sleep
 #define strdup _strdup
+ 
+/* Define pollfd for Windows */
+struct poll_fd {
+    int64 fd; /* the windows socket number */
+    int events; /* not used, but needed for compatibility */
+};
+
 #else
 #include <errno.h>
 #include <sys/types.h>

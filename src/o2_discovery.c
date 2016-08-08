@@ -198,7 +198,7 @@ int o2_discovery_msg_init()
         return O2_FAIL;
     }
     memcpy(o2_discovery_msg, outmsg, size);
-    free_message(outmsg);
+    o2_free_message(outmsg);
     return O2_SUCCESS;
 }
     
@@ -229,7 +229,7 @@ int o2_discovery_send_handler(o2_message_ptr msg, const char *types,
     int err = o2_start_send();
     if (err) return err;
     o2_message_ptr outmsg = o2_finish_message(next_time, "!_o2/ds");
-    o2_schedule(&ltsched, outmsg);
+    o2_schedule(&o2_ltsched, outmsg);
     // printf("o2_discovery_send_handler next time %g\n", next_time);
     return O2_SUCCESS;
 }

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.2.2)
 project(o2)
 
 if(WIN32)
-  add_definitions("-D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS")
+  add_definitions("-D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS -DIS_BIG_ENDIAN=0")
   set(EXTRA_NEEDED_LIBS winmm.lib ws2_32.lib Iphlpapi.lib)
 endif(WIN32)
 
@@ -76,11 +76,11 @@ add_executable(tcppollserver test/tcppollserver.c)
 
 # I don't know if this is necessary. If it is, it should be duplicated
 # for o2client and o2server:
-if(WIN32)
-  set_target_properties(o2test PROPERTIES 
-                               LINK_FLAGS "/SUBSYSTEM:WINDOWS")
-  set_property(TARGET o2test PROPERTY WIN32_EXECUTABLE TRUE)
-endif(WIN32)
+#if(WIN32)
+  #set_target_properties(o2test PROPERTIES 
+                               #LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+  #set_property(TARGET o2test PROPERTY WIN32_EXECUTABLE TRUE)
+#endif(WIN32)
 
 ##########################################################
 # liblo was used for some performance comparisons, but it 

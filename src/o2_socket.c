@@ -12,8 +12,15 @@
 #include "o2_internal.h"
 #include "o2_sched.h"
 #include "o2_send.h"
+
+#ifdef WIN32
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <windows.h>
+#else
 #include "sys/ioctl.h"
 #include <ifaddrs.h>
+#endif
 
 
 //#include <netdb.h>
@@ -267,7 +274,7 @@ void tcp_initial_handler(SOCKET sock, struct fds_info *info)
     //       info->u.process_info->name);
     // since we called o2_discovery_init_handler directly,
     //   we need to free the message
-    free_message(info->message);
+    o2_free_message(info->message);
     tcp_message_cleanup(info);
     return;
 }
@@ -412,6 +419,40 @@ int make_tcp_recv_socket(int tag, process_info_ptr process)
 
                                     
 #ifdef _WIN32
+
+FD_SET o2_read_set;
+timeval o2_no_timeout;
+
+int o2_recv()
+{
+    int i;
+    FD_ZERO(&o2_read_set);
+    for (i = 0; i < o2_fds.length; i++) {
+        struct pollfd *d = DA_GET(o2_fds, struct pollfd, i);
+        FD_SET(d->fd, &o2_read_set);
+    }
+    o2_no_timeout.tv_sec = 0;
+    o2_no_timeout.tv_usec = 0;
+    if ((total = select(0, &o2_read_set, NULL, NULL, o2_no_timeout)) == SOCKET_ERROR) {
+        /* TODO: error handling here */
+        return O2_FAIL; /* TODO: return a specific error code for this */
+    }
+    if (total == 0) { /* no messages waiting */
+        return O2_SUCCESS;
+    }
+    for (i = 0; i < o2_fds.length; i++) {
+        struct pollfd *d = DA_GET(o2_fds, struct pollfd, i);
+        if (FD_ISSET(d->fd, &o2_read_set)) {
+            fds_info_ptr info = DA_GET(o2_fds_info, fds_info, i);
+            (*(info->handler))(d->fd, info);
+        }
+    }
+    return O2_SUCCESS;
+}
+
+
+#ifdef OLD_CODE_IS_HERE
+
 // Use select function to receive messages.
 int o2_recv()
 {
@@ -463,6 +504,7 @@ int o2_recv()
     }    
     return O2_SUCCESS;
 }
+#endif
 #else  // Use poll function to receive messages.
 int o2_recv()
 {

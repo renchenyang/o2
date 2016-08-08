@@ -64,7 +64,7 @@ o2_message_ptr alloc_message()
         (msg) = alloc_bigger_message((msg), (needed))
 
 
-void free_message(o2_message_ptr msg)
+void o2_free_message(o2_message_ptr msg)
 {
     if (msg->allocated == MESSAGE_ALLOCATED_FROM_SIZE(MESSAGE_DEFAULT_SIZE)) {
         msg->next = message_freelist;
@@ -91,7 +91,7 @@ o2_message_ptr alloc_bigger_message(o2_message_ptr msg, int needed)
     newmsg->length = msg->length;
     memcpy(&(newmsg->data), &(msg->data), msg->length);
     MSG_ZERO_END(newmsg, size);
-    free_message(msg);
+    o2_free_message(msg);
     return newmsg;
 }
 
@@ -148,6 +148,24 @@ size_t o2_arg_size(o2_type type, void *data)
     return 0;
 }
 */
+
+
+// o2_blob_new - allocate a blob
+//
+o2_blob_ptr o2_blob_new(uint32_t size)
+{
+    // allocate space for length and extend to word boundary:
+    int64_t needed = WORD_OFFSET(sizeof(uint32_t) + size + 3);
+    if (needed > 0xFFFFFF00) { // allow almost 2^32 byte blobs
+        return NULL; // but leave a little extra room
+    }
+    o2_blob_ptr blob = (o2_blob_ptr) O2_MALLOC(needed);
+    if (blob) {
+        blob->size = needed;
+    }
+    return blob;
+}
+
 
 // o2_validate_string - test if data is a valid string whose
 //     representation is less than or equal to size
@@ -596,7 +614,7 @@ o2_message_ptr o2_build_message(o2_time timestamp, const char *service_name,
 // temp_* is data about the message under construction
 // temp_msg is where we build the message
 //     the typestring is built starting at data.address
-// temp_type_end points to the next byte at which to store next type code
+// temp_type_end contains the address at which to store next type code
 //     note that we leave a gap between the typestring and the data so
 //     that we can insert type codes without moving the data
 // temp_start is where the data starts, this is 1/5 of the way through
@@ -650,7 +668,7 @@ int add_argument(int size, void *data, char typecode)
         temp_end = newmsg->data.address +
                    ((char *) temp_end - temp_msg->data.address);
         // free temp_msg
-        free_message(temp_msg);
+        o2_free_message(temp_msg);
         temp_msg = newmsg;
     }
     // add the typecode
@@ -686,16 +704,21 @@ int o2_add_string(char *s)
     return add_argument(strlen(s) + 1, s, 's');
 }
 
-int o2_add_blob(o2_blob *b)
+int o2_add_blob_data(uint32_t size, void *data)
 {
     // blobs have 2 parts: size and data; we need to use add_argument
     // for each to make sure we do not overflow the message buffer, but
     // we want to add only one type code. The solution is simply decrement
-    // temp_type_end after adding the size to undo the first typecode.
-    int rslt = add_argument(sizeof(b->size), &(b->size), 'b');
+    // temp_type_end after adding the size to overwrite the first typecode.
+    int rslt = add_argument(sizeof(size), size, 'b');
     if (rslt != O2_SUCCESS) return rslt;
     temp_type_end--;
-    return add_argument(b->size, b->data, 'b');
+    return add_argument(size, data, 'b');
+}
+
+int o2_add_blob(o2_blob *b)
+{
+    return o2_add_blob_data(b->size, b->data);
 }
 
 int o2_add_int64(int64_t i)
@@ -765,12 +788,19 @@ int add_time_address(o2_time time, char *address)
     // random offset from the start of the allocated message memory.
     //
     int addrlen = strlen(address);
-    int addrspace = (addrlen + 4) & ~3;
+    int addrspace = (addrlen + 4) & ~3; // length of address + 1 to 4 zero bytes
+    // the type string (including initial comma) is located at 
+    //     temp_msg->data.address, so the type string length can be computed by:
     int typelen = temp_type_end - temp_msg->data.address;
+    // the space needed for the type string including zero padding:
     int typespace = (typelen + 4) & ~3;
+    // how much space is available for the address string? Take the position
+    //     of the payload (temp_start) and subtract the end of the type info:
     int space = (char *) temp_start - WORD_ALIGN_PTR(temp_type_end + 4);
+    // what is the minimum space that must be allocated for the message?
     int new_allocated = temp_msg->length + addrspace - space;
-    if (space >= addrspace) { // move data to lower address (or not at all)
+    if (space >= addrspace) { // we have room for the address
+        // move data to lower address (or not at all)
         // move typecodes up to make room for address
         // begin with zero pad at end of typestring
         *((int32_t *) (temp_msg->data.address + addrspace + typespace - 4)) = 0;
@@ -799,7 +829,7 @@ int add_time_address(o2_time time, char *address)
                typelen);
         memcpy(newmsg->data.address + addrspace + typespace, temp_start,
                temp_end - temp_start);
-        free_message(temp_msg);
+        o2_free_message(temp_msg);
         newmsg->length = (newmsg->data.address - (char *) &(newmsg->data)) +
                         addrspace + typespace + (temp_end - temp_start);
         temp_msg = newmsg;
@@ -822,7 +852,7 @@ o2_message_ptr o2_finish_message(o2_time time, char *address)
 {
     int rslt = add_time_address(time, address);
     if (rslt != O2_SUCCESS) {
-        free_message(temp_msg);
+        o2_free_message(temp_msg);
         temp_msg = NULL;
         return NULL;
     }
