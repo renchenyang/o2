@@ -24,6 +24,7 @@
 #endif
 
 #pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib, "Kernel32.lib")
 
 #ifndef TRUE
 #define TRUE 1
@@ -168,7 +169,11 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        sleep(1);
+#ifdef WIN32
+		Sleep(1);
+#else
+		sleep(1)
+#endif
     }
     return 0;
 }

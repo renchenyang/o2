@@ -671,7 +671,7 @@ int o2_set_clock(o2_time_callback gettime, void *rock);
  *
  */
 /** \hideinitializer */ // turn off Doxygen report on o2_send_marker()
-#define o2_send(path, time, typestring...) \
+#define o2_send(path, time, typestring, ...) \
     o2_send_marker(path, time, FALSE, typestring, O2_MARKER_A, O2_MARKER_B)
 
 /** \cond INTERNAL */ \
@@ -700,7 +700,7 @@ int o2_send_marker(char *path, double time, int tcp_flag, char *typestring, ...)
  *  @return #O2_SUCCESS if success, #O2_FAIL if not.
  */
 /** \hideinitializer */ // turn off Doxygen report on o2_send_marker()
-#define o2_send_cmd(path, time, typestring...) \
+#define o2_send_cmd(path, time, typestring, ...) \
     o2_send_marker(path, time, TRUE, typestring, O2_MARKER_A, O2_MARKER_B)
 
 
@@ -796,7 +796,7 @@ int o2_create_osc_port(const char *service_name, int port_num, int udp_flag);
  *  @return O2_SUCCESS if success, O2_FAIL if not.
  */
 /** \hideinitializer */
-#define o2_send_osc_message(service_name, path, typestring...) \
+#define o2_send_osc_message(service_name, path, typestring, ...) \
     o2_send_osc_message_marker(service_name, path, typestring, \
                                O2_MARKER_A, O2_MARKER_B)
 

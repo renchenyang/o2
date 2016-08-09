@@ -25,7 +25,6 @@
 /* Define pollfd for Windows */
 struct poll_fd {
     __int64 fd; /* the windows socket number */
-    long long fd2;
     int events; /* not used, but needed for compatibility */
 };
 

@@ -415,7 +415,11 @@ int o2_discovery_init_handler(o2_message_ptr msg, const char *types,
     process->udp_sa.sin_family = AF_INET;
     process->udp_port = udp_port;
     assert(udp_port != 0);
-    process->udp_sa.sin_len = sizeof(process->udp_sa);
+
+#ifndef WIN32
+	process->udp_sa.sin_len = sizeof(process->udp_sa);
+#endif
+
     inet_pton(AF_INET, ip, &(process->udp_sa.sin_addr.s_addr));
     process->udp_sa.sin_port = htons(udp_port);
     // printf("%s: finished /in for %s, status %d, udp_port %d\n", debug_prefix, name, status, udp_port);

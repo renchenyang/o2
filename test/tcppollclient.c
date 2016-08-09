@@ -23,6 +23,7 @@
 #include <signal.h>
 
 #pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib, "Kernel32.lib")
 
 #ifndef TRUE
 #define TRUE 1
@@ -82,7 +83,11 @@ int main(int argc,char **argv)
         if (write(sock, msg, strlen(msg) + 1) < 0) {
             displayError("send");
         }
-        sleep(4);
+#ifdef WIN32
+		Sleep(4);
+#else
+		sleep(4)
+#endif
     }
     return 0;
 }
