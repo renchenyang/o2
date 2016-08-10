@@ -77,6 +77,8 @@ typedef struct ifaddrs
 #define              ifa_dstaddr   ifa_ifu.ifu_dstaddr
     void            *ifa_data;    /* Address-specific data */
 } ifaddrs;
+
+
 #endif
 
 typedef struct fds_info {
@@ -113,6 +115,7 @@ extern dyn_array o2_fds;///< pre-constructed fds parameter for poll()
  */
 #ifdef _WIN32
 int initWSock();
+void freeifaddrs(struct ifaddrs *ifp);
 #endif
 
 int init_sockets();

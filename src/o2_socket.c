@@ -158,7 +158,11 @@ void udp_recv_handler(SOCKET sock, struct fds_info *info)
 {
     o2_message_ptr msg;
     int len;
+#ifndef WIN32
     if (ioctl(sock, FIONREAD, &len) == -1) {
+#else
+	if (ioctlsocket(sock, FIONREAD, &len) == -1) {
+#endif
         perror("udp_recv_handler");
         return;
     }
@@ -301,7 +305,11 @@ int make_udp_recv_socket(int tag, int port)
     // Bind the socket
     int err;
     if ((err = bind_recv_socket(sock, &port, FALSE))) {
-        close(sock);
+#ifndef WIN32
+		close(sock);
+#else
+		closesocket(sock);
+#endif
         return err;
     }
     add_new_socket(sock, tag, &o2_process, &udp_recv_handler);
@@ -450,6 +458,12 @@ int o2_recv()
     return O2_SUCCESS;
 }
 
+#ifdef _WIN32
+void freeifaddrs(struct ifaddrs *ifp)
+{
+	free(ifp);
+}
+#endif
 
 #ifdef OLD_CODE_IS_HERE
 

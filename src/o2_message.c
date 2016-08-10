@@ -716,7 +716,7 @@ int o2_add_blob_data(uint32_t size, void *data)
 	// for each to make sure we do not overflow the message buffer, but
 	// we want to add only one type code. The solution is simply decrement
 	// temp_type_end after adding the size to overwrite the first typecode.
-	int rslt = add_argument(sizeof(size), size, 'b');
+	int rslt = add_argument(sizeof(size), &size, 'b');
 	if (rslt != O2_SUCCESS) return rslt;
 	temp_type_end--;
 	return add_argument(size, data, 'b');
