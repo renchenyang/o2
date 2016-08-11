@@ -12,7 +12,8 @@
 #ifdef WIN32
 #include <winsock2.h> 
 #include <windows.h>   
-#include <time.h>   
+#include <ws2tcpip.h> 
+#pragma comment(lib,"ws2_32.lib")
 #else
 #include <unistd.h>
 #include <sys/types.h>
@@ -22,9 +23,6 @@
 #include <sys/poll.h>
 #include <ifaddrs.h>
 #endif
-
-#pragma comment(lib,"ws2_32.lib")
-#pragma comment(lib, "Kernel32.lib")
 
 #ifndef TRUE
 #define TRUE 1
@@ -48,6 +46,9 @@ typedef struct ifaddrs
 #define              ifa_dstaddr   ifa_ifu.ifu_dstaddr
 	void            *ifa_data;    /* Address-specific data */
 } ifaddrs;
+
+int getifaddrs(struct ifaddrs **ifpp);
+void freeifaddrs(struct ifaddrs *ifp);
 #endif
 
 static struct sockaddr_in o2_serv_addr;
@@ -177,3 +178,29 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
+
+
+#ifdef _WIN32
+
+static struct sockaddr * dupaddr(const sockaddr_gen * src)
+{
+	sockaddr_gen * d = malloc(sizeof(*d));
+
+	if (d) {
+		memcpy(d, src, sizeof(*d));
+	}
+
+	return (struct sockaddr *) d;
+}
+
+int getifaddrs(struct ifaddrs **ifpp)
+{
+	return ret;
+}
+
+void freeifaddrs(struct ifaddrs *ifp)
+{
+	free(ifp);
+}
+
+#endif

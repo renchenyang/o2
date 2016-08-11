@@ -459,10 +459,29 @@ int o2_recv()
 }
 
 #ifdef _WIN32
+
+static struct sockaddr *
+dupaddr(const sockaddr_gen * src)
+{
+	sockaddr_gen * d = malloc(sizeof(*d));
+
+	if (d) {
+		memcpy(d, src, sizeof(*d));
+	}
+
+	return (struct sockaddr *) d;
+}
+
+int getifaddrs(struct ifaddrs **ifpp)
+{
+	return ret;
+}
+
 void freeifaddrs(struct ifaddrs *ifp)
 {
 	free(ifp);
 }
+
 #endif
 
 #ifdef OLD_CODE_IS_HERE

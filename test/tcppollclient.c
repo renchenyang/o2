@@ -23,7 +23,6 @@
 #include <signal.h>
 
 #pragma comment(lib,"ws2_32.lib")
-#pragma comment(lib, "Kernel32.lib")
 
 #ifndef TRUE
 #define TRUE 1

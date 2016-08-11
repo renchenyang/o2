@@ -115,6 +115,7 @@ extern dyn_array o2_fds;///< pre-constructed fds parameter for poll()
  */
 #ifdef _WIN32
 int initWSock();
+int getifaddrs(struct ifaddrs **ifpp);
 void freeifaddrs(struct ifaddrs *ifp);
 #endif
 
