@@ -139,7 +139,52 @@ int main(int argc, char **argv) {
     if (listen(server_sock, 10) < 0) {
         displayError("listen failed");
     }
+#ifdef WIN32
+	pfd[0].fd = server_sock;
+	pfd[0].events = POLLIN;
+	pfd_len = 1;
 
+	FD_SET o2_read_set;
+	struct timeval o2_no_timeout;
+	int total;
+	FD_ZERO(&o2_read_set);
+	for (int i = 0; i < pfd_len; i++) {
+		struct pollfd *d = pfd + i;
+		FD_SET(d->fd, &o2_read_set);
+	}
+	o2_no_timeout.tv_sec = 0;
+	o2_no_timeout.tv_usec = 0;
+	while (TRUE) {
+		if ((total = select(0, &o2_read_set, NULL, NULL, &o2_no_timeout)) == SOCKET_ERROR) {
+			printf("read_set error\n");
+		} else if (total == 0) {
+			printf("No message is waiting!");
+		} else {
+			for (int i = 0; i < pfd_len; i++) {
+				struct pollfd *d = pfd + i;
+				if (FD_ISSET(d->fd, &o2_read_set)) {
+					if (i == 0) { // connection request
+						int connection = accept(d->fd, NULL, NULL);
+						if (connection <= 0) {
+							displayError("accept failed");
+						}
+						pfd[pfd_len].events = POLLIN;
+						pfd[pfd_len++].fd = connection;
+					}
+					else {
+						char buffer[1001];
+						int len;
+						if ((len = recvfrom(d->fd, buffer, 1000, 0, NULL, NULL)) <= 0) {
+							displayError("recvfrom tcp failed");
+						}
+						buffer[len] = 0;
+						printf("GOT %d: %s\n", len, buffer);
+					}
+				}
+			}
+		}
+		Sleep(1);
+#else
     /* poll */
 
     pfd[0].fd = server_sock;
@@ -170,12 +215,11 @@ int main(int argc, char **argv) {
                 }
             }
         }
-#ifdef WIN32
-		Sleep(1);
-#else
 		sleep(1)
 #endif
+
     }
+
     return 0;
 }
 
@@ -184,17 +228,12 @@ int main(int argc, char **argv) {
 
 static struct sockaddr * dupaddr(const sockaddr_gen * src)
 {
-	sockaddr_gen * d = malloc(sizeof(*d));
-
-	if (d) {
-		memcpy(d, src, sizeof(*d));
-	}
-
 	return (struct sockaddr *) d;
 }
 
 int getifaddrs(struct ifaddrs **ifpp)
 {
+
 	return ret;
 }
 
