@@ -142,6 +142,7 @@ typedef struct service_table {
 
 /// used for discover, udp and tcp sockets
 typedef struct o2_socket {
+	char c;
 } o2_socket;
 
 // global variables
