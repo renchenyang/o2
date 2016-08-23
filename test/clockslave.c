@@ -13,6 +13,8 @@
 #include <unistd.h>
 #endif
 
+#pragma comment(lib,"o2_static.lib")
+
 int clockslave(o2_message_ptr msg, const char *types,
                o2_arg ** argv, int argc, void *user_data)
 {
